@@ -1,0 +1,91 @@
+use clap::Parser;
+use std::ffi::CString;
+use std::fs::{File, canonicalize};
+use std::os::unix::io::AsRawFd;
+use syscalls::{Sysno, syscall};
+// SWAP NAME RS : The goal of this code is to swap the name of two file without changing their
+// content.
+
+const RENAME_EXCHANGE: usize = 1 << 1;
+
+fn main() {
+    let args: Cli = Cli::parse();
+    swap_file(&args);
+}
+
+fn display(cli: &Cli) {
+    println!(
+        "{:?} is renamed as {:?}, and {:?} is renamed as {:?}",
+        cli.first_file, cli.second_file, cli.second_file, cli.first_file
+    );
+}
+#[derive(Parser)]
+struct Cli {
+    first_file: std::path::PathBuf,
+    second_file: std::path::PathBuf,
+}
+impl Cli {
+    fn get_dir_descriptor(&self) -> (File, std::path::PathBuf, std::path::PathBuf) {
+        let realpath1 = canonicalize(&self.first_file).expect("Cannot resolve first file path");
+        let realpath2 = canonicalize(&self.second_file).expect("Cannot resolve second file path");
+
+        let path1 = realpath1
+            .parent()
+            .expect("No parent for first file (root ?)");
+        let path2 = realpath2
+            .parent()
+            .expect("No parent for second file (root ?)");
+
+        // Vérifier que les deux fichiers sont dans le même répertoire
+        assert_eq!(path1, path2, "Files must be in the same directory");
+
+        println!("First path : {:?}, Second path :{:?}", path1, path2);
+
+        (
+            File::open(path1).expect("Could not open first dir"),
+            realpath1,
+            realpath2,
+        )
+    }
+
+    fn get_path_string(
+        realpath1: &std::path::Path,
+        realpath2: &std::path::Path,
+    ) -> (CString, CString) {
+        let name1 = realpath1.file_name().unwrap();
+        let name2 = realpath2.file_name().unwrap();
+
+        println!("Name 1 : {:?}, name2 : {:?}", name1, name2);
+
+        (
+            CString::new(name1.to_str().unwrap())
+                .expect("Cannot create the C string from first file name"),
+            CString::new(name2.to_str().unwrap())
+                .expect("Cannot create the C string from second file name"),
+        )
+    }
+}
+
+fn swap_file(cli: &Cli) {
+    let (fdir, realpath1, realpath2) = cli.get_dir_descriptor();
+    let (fd1, fd2) = Cli::get_path_string(&realpath1, &realpath2);
+
+    match unsafe {
+        syscall!(
+            Sysno::renameat2,
+            fdir.as_raw_fd(),
+            fd1.as_ptr(),
+            fdir.as_raw_fd(),
+            fd2.as_ptr(),
+            RENAME_EXCHANGE
+        )
+    } {
+        Ok(result) => {
+            println!("Le syscall a marché !!! Valeur de retour {}", result);
+            display(cli);
+        }
+        Err(err) => {
+            panic!("renameat failed: {}", err);
+        }
+    }
+}
