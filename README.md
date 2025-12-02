@@ -47,5 +47,5 @@ swap-name-rs/target/debug on  main [!?] took 5s
 ```  
 They are literally running two time faster than me :(
 
-So I tried to optimize my code using what is the closest to the exch implementation : [https://github.com/util-linux/util-linux/blob/master/misc-utils/exch.c] (https://github.com/util-linux/util-linux/blob/master/misc-utils/exch.c), which is the actual main.rs, (the old version is main.old lmao) but it didn't help, and they are still faster.  
+So I tried to optimize my code using what is the closest to the exch implementation : [https://github.com/util-linux/util-linux/blob/master/misc-utils/exch.c](https://github.com/util-linux/util-linux/blob/master/misc-utils/exch.c), which is the actual main.rs, (the old version is main.old lmao) but it didn't help, and they are still faster.  
 I guess that trying to make systemcall in rust was dumb anyway, because rust is supposed to be safer than C, not faster.  
