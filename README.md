@@ -1,6 +1,6 @@
 # An attempt to make a rust port of exch:
 
-I'm currently learning rust, and I wanted to try to make a command that swapped two filename without changing their content. I didn't know the ```exch``` command, that does exactly that, but I DID know a kernel syscall called ```renameat2```` that does exactly what I needed.  
+I'm currently learning rust, and I wanted to try to make a command that swapped two filename without changing their content. I didn't know the ```exch``` command, that does exactly that, but I DID know a kernel syscall called ```renameat2``` that does exactly what I needed.  
 So I tried to make a rust wrapper of this syscall, to see if it would be more efficient that doing ```mv toto toto.bak && mv tata toto && mv toto.bak tata```, and it is :
 
 Benchmark swap-name-rs against 3-mv:
