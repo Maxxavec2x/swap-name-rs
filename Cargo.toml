@@ -6,4 +6,5 @@ edition = "2024"
 [dependencies]
 clap = { version = "4.5.53", features = ["derive"]}
 syscalls = { version = "0.7.0"}
-io = {version ="0.0.2"}
+libc = {version = "0.2.178"}
+
